@@ -1,11 +1,23 @@
 import tkinter as tk
+import time
+
 from utils.extract_word import extract_word
 from utils.search_words import search_words
 
+##########################################
+## INIT DATA #############################
+##########################################
+
+# LOAD ALL LINES INITIALLY
 with open('words.txt', 'r') as f:
     lines = f.readlines()
 
+# INIT MATCHES ARRAY
 matches = []
+
+##########################################
+## FUNCTIONS #############################
+##########################################
 
 # Function to display the word details
 def show_word_details(event):
@@ -18,51 +30,70 @@ def show_word_details(event):
         index = selection[0]
      
         line = matches[index]
-        # Extract the word details
-        eng_word, word_type, ch_meaning = extract_word(line)
-
+   
         # Update the entry fields with word details
         eng_word_entry.delete(0, tk.END)
-        eng_word_entry.insert(0, eng_word)
+        eng_word_entry.insert(0, line[0])
         word_type_entry.delete(0, tk.END)
-        word_type_entry.insert(0, word_type)
+        word_type_entry.insert(0, line[1])
         ch_meaning_entry.delete(0, tk.END)
-        ch_meaning_entry.insert(0, ch_meaning)
+        ch_meaning_entry.insert(0, line[2])
 
 # Function to update the matches list
 def update_matches(event):
     
+    # USE MATCHES FROM OUTER BLOCK
     global matches
     
     # Get the query string from the entry field
     query = query_entry.get()
 
+    # CLEAN WORD DETAILS LABELS
+    eng_word_entry.delete(0, tk.END)
+    word_type_entry.delete(0, tk.END)
+    ch_meaning_entry.delete(0, tk.END)
+    
+    # IF NO QUERY INPUT => CLEAR LIST BOX AND COUNT LABEL
     if not query:
         listbox.delete(0, tk.END)
         count_label.config(text="")
         return
     
+    # Start the timer
+    start_time = time.time()
+    
+    # EMPTY MATCHES ARRAY
     matches.clear()
+    
     # Get the matching words
     matches = search_words(lines, query)
+    
+    # End the timer
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    
     
     # Update the matches list
     listbox.delete(0, tk.END)
     for match in matches:
-        eng_word, _, _ = extract_word(match)
-        listbox.insert(tk.END, eng_word)
+        # PUSH THE ENGLISH WORD TO THE LIST BOX
+        listbox.insert(tk.END, match[0])
         
-        
-    
     # Update the match count label
     count_label.config(text=f"{len(matches)} matches found")    
+    print(f"Elapsed time: {elapsed_time:.6f} seconds")
     
+    
+##########################################
+# CREATE THE GUI #########################
+##########################################
 
-# Create the GUI
 root = tk.Tk()
-root.title("Smart English-Chinese Dictionary")
+root.title("Fast English-Chinese Dictionary")
 
-# Create the widgets
+##########################################
+# CREATE THE WIDGETS #####################
+##########################################
 
 # QUERY LABEL
 query_label = tk.Label(root, text="Enter query:")
@@ -78,7 +109,6 @@ listbox = tk.Listbox(root, width=70, height=30)
 
 # LIST BOX SCROLLBAR
 listbox_scrollbar = tk.Scrollbar(root, orient="vertical", command=listbox.yview)
-listbox.configure(yscrollcommand=listbox_scrollbar.set)
 
 # ENG WORD LABEL
 eng_word_label = tk.Label(root, text="English Word:")
@@ -98,11 +128,11 @@ ch_meaning_label = tk.Label(root, text="Chinese Meaning:")
 # CHINESE MEANING ENTRY
 ch_meaning_entry = tk.Entry(root)
 
-# Bind events
+# BIND EVENTS
 query_entry.bind("<KeyRelease>", update_matches)
 listbox.bind("<ButtonRelease-1>", show_word_details)
 
-# Pack the widgets
+# PACK THE WIDGETS
 query_label.pack()
 query_entry.pack()
 count_label.pack()
@@ -114,7 +144,10 @@ word_type_entry.pack()
 ch_meaning_label.pack()
 ch_meaning_entry.pack()
 
-# RUNNING THIS SCRIPT AS THE MAIN FILE => CALL THE MAIN FUNC
+##########################################################################
+# RUNNING THIS SCRIPT AS THE MAIN FILE => CALL THE MAIN FUNC #############
+##########################################################################
+
 if __name__ == '__main__':
-    # Start the main loop
+    # START THE GUI PROGRAM
     root.mainloop()     
